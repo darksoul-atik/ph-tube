@@ -1,5 +1,12 @@
-//Dynamic Button API
+//Remove Active Buttons
+function removeActiveClass() {
+  const activeButtons = document.getElementsByClassName("active");
 
+  for (let btn of activeButtons) {
+    btn.classList.remove("active");
+  }
+}
+//Dynamic Button API
 function loadCategories() {
   //fetch the data
 
@@ -7,30 +14,43 @@ function loadCategories() {
     .then((res) => res.json())
     .then((data) => displayCategories(data.categories));
 }
-
 function displayCategories(categories) {
   const categoryContainer = document.getElementById("category-container");
 
   for (let cat of categories) {
     const categoryDiv = document.createElement("div");
     categoryDiv.innerHTML = `
-      <button class="btn btn-sm hover:bg-red-500 hover:text-white">${cat.category}</button>
+
+      <button id="btn-${cat.category_id}" onclick="loadCategoryVideos(${cat.category_id})" class="btn btn-sm hover:bg-red-500 hover:text-white">${cat.category}</button>
     `;
+
     //append the element
     categoryContainer.appendChild(categoryDiv);
   }
 }
-
 //Dynamic Video API
-
 function loadVideos() {
   fetch("https://openapi.programming-hero.com/api/phero-tube/videos")
     .then((response) => response.json())
-    .then((data) => displayVideos(data.videos));
+    .then((data) => {
+      displayVideos(data.videos);
+      removeActiveClass();
+      document.getElementById("btn-all").classList.add("active");
+    });
 }
-
 const displayVideos = (videos) => {
   const videoContainer = document.getElementById("video-container");
+
+  videoContainer.innerHTML = ""; //এইটার কারণে আগে ভিডিও গুলা গায়েব হয়ে যাবে
+
+  if (videos.length == 0) {
+    videoContainer.innerHTML = `
+      <div class="col-span-full mt-40 justify-center items-center text-center flex flex-col">
+        <img class="w-[120px]" src="./resources/Icon.png" alt="">
+        <h2 class="text-2xl font-bold">OOOPS Sorry . There is No Content Here</h2>
+     </div>`;
+    return;
+  }
 
   videos.forEach((video) => {
     const videoCard = document.createElement("div");
@@ -43,9 +63,6 @@ const displayVideos = (videos) => {
                     <span class="absolute bottom-2 right-2 text-white bg-black px-2 text-sm rounded">3hrs 56 min
                         ago</span>
                 </figure>
-
-
-
 
                 <div class="flex gap-3 px-1 py-5 shadow">
 
@@ -80,6 +97,21 @@ const displayVideos = (videos) => {
   });
 };
 
+//Load By Category API
+const loadCategoryVideos = (id) => {
+  const url = `https://openapi.programming-hero.com/api/phero-tube/category/${id}`;
+
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      const clickedButton = document.getElementById(`btn-${id}`);
+      removeActiveClass();
+      clickedButton.classList.add("active");
+
+      clickedButton.classList.add("active");
+      displayVideos(data.category);
+    });
+};
+
 //Function Call Area (DONT REMOVE ANYTHING)
 loadCategories();
-loadVideos();
